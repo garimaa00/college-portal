@@ -1,94 +1,55 @@
-import React, { useState, useEffect, useContext } from 'react';
-import api from '../api';
-import { AuthContext } from '../AuthContext';
+// university-portal-frontend/src/components/StudentDashboard.js
+import { useNavigate, Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 
-function StudentDashboard() {
-  const { user } = useContext(AuthContext);
-  const [data, setData] = useState({
-    exams: [],
-    fees: [],
-    notifications: [],
-    faculty: [],
-    teacherAttendance: [],
-  });
-  const [error, setError] = useState(null);
+const StudentDashboard = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const data = window.DJANGO_DATA?.student || {
+    attendance: { attended_days: 0, total_days: 0, percentage: 0 },
+    courses: [],
+    events: [],
+  };
+  const showToast = data.attendance.percentage < 80;
 
-  useEffect(() => {
-    api.get('student/dashboard/')
-      .then(res => {
-        setData({
-          exams: res.data.exams,
-          fees: res.data.fees,
-          notifications: res.data.notifications,
-          faculty: res.data.faculty,
-          teacherAttendance: res.data.teacher_attendance,
-        });
-      })
-      .catch(err => setError('Failed to fetch dashboard data'));
-  }, []);
-
-  if (error) return <div className="text-red-500">{error}</div>;
+  const handleLogout = () => {
+    dispatch({ type: 'LOGOUT' });
+    localStorage.removeItem('token');
+    navigate('/login');
+  };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Student Dashboard (BIM)</h1>
-      
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Exam Schedules</h2>
-        <ul className="list-disc pl-5">
-          {data.exams.map(exam => (
-            <li key={exam.id} className="mb-2">
-              {exam.subject} - Semester {exam.semester} - {new Date(exam.date).toLocaleString()}
-            </li>
-          ))}
-        </ul>
+    <div className="max-w-7xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Student Dashboard</h1>
+      <button
+        onClick={handleLogout}
+        className="mb-6 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+      >
+        Logout
+      </button>
+      {showToast && (
+        <div className="bg-red-100 text-red-700 p-4 rounded-md mb-6">
+          <strong>Attendance Alert:</strong> Your attendance is {data.attendance.percentage.toFixed(2)}%, below 80%!
+        </div>
+      )}
+      <h2 className="text-xl font-semibold mb-4">View Attendance</h2>
+      <Link to="/attendance/view" className="text-blue-600 hover:underline">View Attendance Details</Link>
+      <p className="mt-2">
+        Attended: {data.attendance.attended_days} / Total: {data.attendance.total_days}
+      </p>
+      <h2 className="text-xl font-semibold mb-4 mt-6">Course Details</h2>
+      <Link to="/bim-course-details" className="text-blue-600 hover:underline">View BIM Course Details</Link>
+      <div className="mt-2">
+        {data.courses.map((course) => (
+          <div key={course.id} className="mb-2">{course.name} - {course.description}</div>
+        ))}
       </div>
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Fee Reminders</h2>
-        <ul className="list-disc pl-5">
-          {data.fees.map(fee => (
-            <li key={fee.id} className="mb-2">
-              Amount: ${fee.amount} - Due: {new Date(fee.due_date).toLocaleDateString()}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Notifications</h2>
-        <ul className="list-disc pl-5">
-          {data.notifications.map(post => (
-            <li key={post.id} className="mb-2">
-              <strong>{post.title}</strong> ({post.category}) - {post.body} - {new Date(post.date).toLocaleString()}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Faculty</h2>
-        <ul className="list-disc pl-5">
-          {data.faculty.map(fac => (
-            <li key={fac.id} className="mb-2">
-              {fac.name} - {fac.subject}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Teacher Attendance</h2>
-        <ul className="list-disc pl-5">
-          {data.teacherAttendance.map(att => (
-            <li key={att.id} className="mb-2">
-              {att.user.username} - {att.is_present ? 'Present' : 'Absent'} - {new Date(att.date).toLocaleDateString()}
-            </li>
-          ))}
-        </ul>
-      </div>
+      <h2 className="text-xl font-semibold mb-4 mt-6">Events</h2>
+      {data.events.map((event) => (
+        <div key={event.id} className="mb-2">{event.title} - {event.date}</div>
+      ))}
     </div>
   );
-}
+};
 
 export default StudentDashboard;

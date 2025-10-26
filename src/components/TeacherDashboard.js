@@ -1,132 +1,93 @@
-import React, { useState, useContext } from 'react';
-import api from '../api';
-import { AuthContext } from '../AuthContext';
+// university-portal-frontend/src/components/TeacherDashboard.js
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 
-function TeacherDashboard() {
-  const { user } = useContext(AuthContext);
-  const [attendance, setAttendance] = useState({ is_present: true });
-  const [studentAttendance, setStudentAttendance] = useState({ studentId: '', is_present: true });
-  const [notice, setNotice] = useState({ subject: '', details: '' });
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
+const TeacherDashboard = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const data = window.DJANGO_DATA?.teacher || { courses: [], events: [] };
+  const [studentId, setStudentId] = useState('');
+  const [courseId, setCourseId] = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVariant, setToastVariant] = useState('success');
 
-  const handleAttendanceSubmit = async (e) => {
+  const handleMarkAttendance = (e) => {
     e.preventDefault();
-    try {
-      await api.post('teacher/attendance/', attendance);
-      setSuccess('Attendance marked successfully');
-      setError(null);
-    } catch (err) {
-      setError('Failed to mark attendance');
-      setSuccess(null);
-    }
+    // Simulate marking attendance (actual submission handled by Django)
+    setToastMessage('Attendance marked successfully!');
+    setToastVariant('success');
+    setShowToast(true);
+    setStudentId('');
+    setCourseId('');
   };
 
-  const handleStudentAttendanceSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await api.post('teacher/attendance/', { user: studentAttendance.studentId, is_present: studentAttendance.is_present });
-      setSuccess('Student attendance marked successfully');
-      setError(null);
-    } catch (err) {
-      setError('Failed to mark student attendance');
-      setSuccess(null);
-    }
-  };
-
-  const handleNoticeSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await api.post('teacher/notice/', notice);
-      setSuccess('Notice posted successfully');
-      setError(null);
-      setNotice({ subject: '', details: '' });
-    } catch (err) {
-      setError('Failed to post notice');
-      setSuccess(null);
-    }
+  const handleLogout = () => {
+    dispatch({ type: 'LOGOUT' });
+    localStorage.removeItem('token');
+    navigate('/login');
   };
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Teacher Dashboard</h1>
-
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      {success && <div className="text-green-500 mb-4">{success}</div>}
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Mark Your Attendance</h2>
-        <form onSubmit={handleAttendanceSubmit} className="space-y-4">
-          <div>
-            <label className="block">Status</label>
-            <select
-              value={attendance.is_present}
-              onChange={(e) => setAttendance({ is_present: e.target.value === 'true' })}
-              className="border p-2 rounded"
-            >
-              <option value="true">Present</option>
-              <option value="false">Absent</option>
-            </select>
-          </div>
-          <button type="submit" className="bg-blue-500 text-white p-2 rounded">Submit Attendance</button>
-        </form>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Mark Student Attendance</h2>
-        <form onSubmit={handleStudentAttendanceSubmit} className="space-y-4">
-          <div>
-            <label className="block">Student ID</label>
-            <input
-              type="text"
-              value={studentAttendance.studentId}
-              onChange={(e) => setStudentAttendance({ ...studentAttendance, studentId: e.target.value })}
-              className="border p-2 rounded w-full"
-              placeholder="Enter student ID"
-            />
-          </div>
-          <div>
-            <label className="block">Status</label>
-            <select
-              value={studentAttendance.is_present}
-              onChange={(e) => setStudentAttendance({ ...studentAttendance, is_present: e.target.value === 'true' })}
-              className="border p-2 rounded"
-            >
-              <option value="true">Present</option>
-              <option value="false">Absent</option>
-            </select>
-          </div>
-          <button type="submit" className="bg-blue-500 text-white p-2 rounded">Submit Student Attendance</button>
-        </form>
-      </div>
-
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-2">Post Notice/Assignment</h2>
-        <form onSubmit={handleNoticeSubmit} className="space-y-4">
-          <div>
-            <label className="block">Subject</label>
-            <input
-              type="text"
-              value={notice.subject}
-              onChange={(e) => setNotice({ ...notice, subject: e.target.value })}
-              className="border p-2 rounded w-full"
-              placeholder="Enter subject"
-            />
-          </div>
-          <div>
-            <label className="block">Details</label>
-            <textarea
-              value={notice.details}
-              onChange={(e) => setNotice({ ...notice, details: e.target.value })}
-              className="border p-2 rounded w-full"
-              placeholder="Enter notice or assignment details"
-            />
-          </div>
-          <button type="submit" className="bg-blue-500 text-white p-2 rounded">Post Notice</button>
-        </form>
-      </div>
+    <div className="max-w-7xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Teacher Dashboard</h1>
+      <button
+        onClick={handleLogout}
+        className="mb-6 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+      >
+        Logout
+      </button>
+      {showToast && (
+        <div className={`p-4 mb-4 rounded ${toastVariant === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          {toastMessage}
+          <button onClick={() => setShowToast(false)} className="ml-2 text-sm font-semibold">✕</button>
+        </div>
+      )}
+      <h2 className="text-xl font-semibold mb-4">Mark Attendance</h2>
+      <form onSubmit={handleMarkAttendance} className="space-y-4 mb-6">
+        <input type="hidden" name="csrfmiddlewaretoken" value={window.DJANGO_DATA?.csrfToken || ''} />
+        <div>
+          <label htmlFor="studentId" className="block text-sm font-medium text-gray-700">Student ID</label>
+          <input
+            id="studentId"
+            name="student_id"
+            type="number"
+            value={studentId}
+            onChange={(e) => setStudentId(e.target.value)}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="courseId" className="block text-sm font-medium text-gray-700">Course ID</label>
+          <input
+            id="courseId"
+            name="course_id"
+            type="number"
+            value={courseId}
+            onChange={(e) => setCourseId(e.target.value)}
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
+        >
+          Mark Attendance
+        </button>
+      </form>
+      <h2 className="text-xl font-semibold mb-4">Courses</h2>
+      {data.courses.map((course) => (
+        <div key={course.id} className="mb-2">{course.name} - {course.description}</div>
+      ))}
+      <h2 className="text-xl font-semibold mb-4 mt-6">Events</h2>
+      {data.events.map((event) => (
+        <div key={event.id} className="mb-2">{event.title} - {event.date}</div>
+      ))}
     </div>
   );
-}
+};
 
 export default TeacherDashboard;

@@ -1,53 +1,44 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AuthContext } from '../AuthContext';
-
-function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState(null);
-  const { login } = useContext(AuthContext);
-  const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const result = await login(username, password);
-    if (result.success) {
-      navigate(result.userType === 'student' ? '/student' : '/teacher');
-    } else {
-      setError(result.error);
-    }
-  };
+// university-portal-frontend/src/components/Login.js
+const Login = () => {
+  const error = window.DJANGO_DATA?.error || '';
 
   return (
-    <div className="container mx-auto p-4 max-w-md">
-      <h1 className="text-2xl font-bold mb-4">Login</h1>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="max-w-md mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Login</h1>
+      {error && (
+        <div className="bg-red-100 text-red-700 p-4 rounded-md mb-6">{error}</div>
+      )}
+      <form method="POST" action="/login/" className="space-y-4">
+        <input type="hidden" name="csrfmiddlewaretoken" value={window.DJANGO_DATA?.csrfToken || ''} />
         <div>
-          <label className="block">Email or Phone</label>
+          <label htmlFor="username" className="block text-sm font-medium text-gray-700">Username</label>
           <input
+            id="username"
+            name="username"
             type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            className="border p-2 rounded w-full"
-            placeholder="Enter email or phone"
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            required
           />
         </div>
         <div>
-          <label className="block">Password</label>
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
           <input
+            id="password"
+            name="password"
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="border p-2 rounded w-full"
-            placeholder="Enter password"
+            className="mt-1 block w-full p-2 border border-gray-300 rounded-md"
+            required
           />
         </div>
-        <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full">Login</button>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
+        >
+          Login
+        </button>
       </form>
     </div>
   );
-}
+};
 
 export default Login;
