@@ -1,4 +1,4 @@
-// university-portal-frontend/src/components/ViewAttendance.js
+
 import { useNavigate } from 'react-router-dom';
 
 const ViewAttendance = () => {
